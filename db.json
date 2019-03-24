@@ -1,0 +1,29 @@
+{
+  "todos": [
+    {
+      "id": 1,
+      "title": "Make a todo server",
+      "done": true
+    },
+    {
+      "id": 2,
+      "title": "Install and configure Jest",
+      "done": false
+    },
+    {
+      "id": 3,
+      "title": "Implement todo service tests",
+      "done": false
+    },
+    {
+      "id": 4,
+      "title": "Implement todo service",
+      "done": false
+    },
+    {
+      "id": 5,
+      "title": "Implement todo component",
+      "done": false
+    }
+  ]
+}
