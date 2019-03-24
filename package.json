@@ -1,14 +1,14 @@
 {
-  "name": "testing-services",
+  "name": "jest-http-testing-examples",
   "version": "1.0.0",
-  "description": "",
+  "description": "Examples of HTTP Requests tests using Jest",
   "main": "index.js",
   "scripts": {
     "server": "json-server --watch db.json",
     "test": "jest"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Maxsuel Maccari",
+  "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.4.0",
     "@babel/preset-env": "^7.4.2",
