@@ -1,59 +1,50 @@
+import { Polly } from '@pollyjs/core'
+import FSPersister from '@pollyjs/persister-fs'
+import NodeHttpAdapter from '@pollyjs/adapter-node-http'
+import { setupPolly } from 'setup-polly-jest'
+
 import TodoService from '../TodoService.js'
-import nock from 'nock'
+
+const path = require('path')
+
+Polly.register(NodeHttpAdapter)
+Polly.register(FSPersister)
 
 describe('TodoService', () => {
-  const http = nock('http://0.0.0.0:3000')
-    .defaultReplyHeaders({
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
-      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE'
-    })
-
-  beforeEach(() => {
-    nock.cleanAll()
-  })
-
-  test('listTodos returns an empty array when todos list is empty', done => {
-    http.get('/todos').reply(200, [])
-
-    TodoService.listTodos().then(data => {
-      expect(data).toEqual([])
-
-      done()
-    })
+  let context = setupPolly({
+    adapters: ['node-http'],
+    persister: 'fs',
+    persisterOptions: {
+      fs: {
+        recordingsDir: path.resolve(__dirname, '__recordings__')
+      }
+    },
+    recordFailedRequests: true
   })
 
   test('listTodos returns an todos when todos list is not empty', done => {
-    const todos = [
-      {id: 1, description: 'Todo 1', done: true},
-      {id: 2, description: 'Todo 2', done: false}
-    ]
-    http.get('/todos').reply(200, todos)
-
     TodoService.listTodos().then(data => {
-      expect(data).toEqual(todos)
+      expect(data.length).toBe(5)
+      expect(data[0].id).toBe(1)
+      expect(data[0].done).toBe(true)
+      expect(data[0].title).toBe('Make a todo server')
 
       done()
     })
   })
 
   test('getTodo returns todo when todo exists', done => {
-    const todo = { id: 1, description: 'Todo', done: false }
-    http.get('/todos/1').reply(200, todo)
-
     TodoService.getTodo(1).then(data => {
-      expect(data).toEqual(todo)
+      expect(data.id).toBe(1)
+      expect(data.done).toBe(true)
+      expect(data.title).toBe('Make a todo server')
 
       done()
     })
   })
 
   test('getTodo throws error with 404 when todo not exists', done => {
-    const todo = { id: 1, description: 'Todo', done: false }
-    http.get('/todos/1').reply(404, {})
-
-    TodoService.getTodo(1).catch(error => {
+    TodoService.getTodo(6).catch(error => {
       expect(error.response.status).toBe(404)
       expect(error.response.statusText).toBe('Not Found')
 
@@ -63,10 +54,9 @@ describe('TodoService', () => {
 
   test('createTodo returns the new created todo', done => {
     const payload = { description: 'Todo', done: false }
-    http.post('/todos', payload).reply(201, {...payload, id: 1})
 
     TodoService.createTodo(payload).then(data => {
-      expect(data.id).toBe(1)
+      expect(data.id).toBe(6)
       expect(data.description).toEqual(payload.description)
       expect(data.done).toEqual(payload.done)
 
@@ -76,8 +66,6 @@ describe('TodoService', () => {
 
   test('updateTodo returns the updated todo', done => {
     const payload = { description: 'Updated Todo', done: true }
-    http.options('/todos/1').reply(200)
-        .put('/todos/1', payload).reply(200, {...payload, id: 1})
 
     TodoService.updateTodo(1, payload).then(data => {
       expect(data.id).toBe(1)
@@ -90,10 +78,8 @@ describe('TodoService', () => {
 
   test('updateTodo returns 404 error when todo not exists', done => {
     const payload = { description: 'Updated Todo', done: true }
-    http.options('/todos/1').reply(200)
-        .put('/todos/1', payload).reply(404)
 
-    TodoService.updateTodo(1, payload).catch(error => {
+    TodoService.updateTodo(7, payload).catch(error => {
       expect(error.response.status).toBe(404)
       expect(error.response.statusText).toBe('Not Found')
 
@@ -102,11 +88,7 @@ describe('TodoService', () => {
   })
 
   test('deleteTodo returns 200 when todo exists', done => {
-    http
-      .options('/todos/1').reply(200)
-      .delete('/todos/1').reply(200)
-
-    TodoService.deleteTodo(1).then(data => {
+    TodoService.deleteTodo(6).then(data => {
       expect(data).toBe(200)
 
       done()
@@ -114,10 +96,7 @@ describe('TodoService', () => {
   })
 
   test('deleteTodo returns 404 error when todo not exists', done => {
-    http.options('/todos/1').reply(200)
-        .delete('/todos/1').reply(404)
-
-    TodoService.deleteTodo(1).catch(error => {
+    TodoService.deleteTodo(7).catch(error => {
       expect(error.response.status).toBe(404)
       expect(error.response.statusText).toBe('Not Found')
 
