@@ -1,7 +1,7 @@
 import TodoService from '../TodoService.js'
 import nock from 'nock'
 
-describe('TodoService', () => {
+describe('TodoService stubing', () => {
   const http = nock('http://0.0.0.0:3000')
     .defaultReplyHeaders({
       'Content-Type': 'application/json',
